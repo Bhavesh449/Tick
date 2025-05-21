@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Play with Mayank</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+    background: #f0f0f0;
+  }
+  h1 {
+    margin-bottom: 10px;
+    color: #333;
+  }
+  #scoreboard {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    color: #222;
+  }
+  #game {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    width: 320px;
+    text-align: center;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .cell {
+    background: #eaeaea;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .cell:hover {
+    background: #d0d0d0;
+  }
+  #message {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    min-height: 24px;
+    color: #007700;
+  }
+  #restart {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background: #0077cc;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #restart:hover {
+    background: #005fa3;
+  }
+
+  @keyframes pulse {
+    0%, 100% { background-color: #90ee90; }
+    50% { background-color: #32cd32; }
+  }
+  .win-cell {
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+  }
+  .draw-shake {
+    animation: shake 0.5s ease-in-out 3;
+  }
+</style>
+</head>
+<body>
+  <h1>Play with Mayank</h1>
+
+  <div id="scoreboard">
+    Player X Wins: <span id="x-wins">0</span> | Mayank (O) Wins: <span id="o-wins">0</span>
+  </div>
+
+  <div id="game">
+    <div class="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <div id="message"></div>
+    <button id="restart">Restart Game</button>
+  </div>
+
+<script>
+  const cells = document.querySelectorAll('.cell');
+  const message = document.getElementById('message');
+  const restartBtn = document.getElementById('restart');
+  const boardDiv = document.querySelector('.board');
+  const xWinsSpan = document.getElementById('x-wins');
+  const oWinsSpan = document.getElementById('o-wins');
+
+  let board = ['', '', '', '', '', '', '', '', ''];
+  let currentPlayer = 'X';  // You
+  let isGameActive = true;
+
+  let score = { X: 0, O: 0 };
+
+  const winningConditions = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+
+  function handleCellClick(event) {
+    const index = event.target.getAttribute('data-index');
+    if (board[index] !== '' || !isGameActive || currentPlayer !== 'X') return;
+
+    updateCell(event.target, index);
+    if (!checkResult()) {
+      currentPlayer = 'O';
+      message.textContent = `Mayank is thinking...`;
+      setTimeout(aiMove, 500);
+    }
+  }
+
+  function updateCell(cell, index) {
+    board[index] = currentPlayer;
+    cell.textContent = currentPlayer;
+  }
+
+  function checkResult() {
+    let roundWon = false;
+    let winningCombo = [];
+
+    for (let condition of winningConditions) {
+      const [a,b,c] = condition;
+      if (board[a] === '' || board[b] === '' || board[c] === '') continue;
+      if (board[a] === board[b] && board[b] === board[c]) {
+        roundWon = true;
+        winningCombo = condition;
+        break;
+      }
+    }
+
+    if (roundWon) {
+      if(currentPlayer === 'O'){
+        message.textContent = `Mayank wins! 🎉`;
+      } else {
+        message.textContent = `Player ${currentPlayer} wins! 🎉`;
+      }
+      isGameActive = false;
+      highlightWinningCells(winningCombo);
+      updateScore(currentPlayer);
+      setTimeout(restartGame, 2000);
+      return true;
+    }
+
+    if (!board.includes('')) {
+      message.textContent = "It's a draw!";
+      isGameActive = false;
+      animateDraw();
+      setTimeout(restartGame, 2000);
+      return true;
+    }
+
+    return false;
+  }
+
+  function highlightWinningCells(combo) {
+    combo.forEach(index => cells[index].classList.add('win-cell'));
+  }
+
+  function animateDraw() {
+    boardDiv.classList.add('draw-shake');
+    boardDiv.addEventListener('animationend', () => {
+      boardDiv.classList.remove('draw-shake');
+    }, { once: true });
+  }
+
+  function updateScore(player) {
+    if (player === 'X') {
+      score.X++;
+      xWinsSpan.textContent = score.X;
+    } else if (player === 'O') {
+      score.O++;
+      oWinsSpan.textContent = score.O;
+    }
+  }
+
+  function aiMove() {
+    if (!isGameActive) return;
+
+    let move = findBestMove('O');
+    if (move === -1) move = findBestMove('X');
+    if (move === -1) move = getRandomMove();
+
+    if (move !== -1) {
+      currentPlayer = 'O';
+      updateCell(cells[move], move);
+      if (!checkResult()) {
+        currentPlayer = 'X';
+        message.textContent = `Player ${currentPlayer}'s turn`;
+      }
+    }
+  }
+
+  function findBestMove(player) {
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === '') {
+        board[i] = player;
+        if (isWinner(player)) {
+          board[i] = '';
+          return i;
+        }
+        board[i] = '';
+      }
+    }
+    return -1;
+  }
+
+  function isWinner(player) {
+    return winningConditions.some(condition =>
+      condition.every(index => board[index] === player)
+    );
+  }
+
+  function getRandomMove() {
+    const emptyCells = board
+      .map((val, idx) => val === '' ? idx : null)
+      .filter(val => val !== null);
+    if (emptyCells.length === 0) return -1;
+    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+  }
+
+  function restartGame() {
+    board = ['', '', '', '', '', '', '', '', ''];
+    isGameActive = true;
+    currentPlayer = 'X';
+    message.textContent = `Player ${currentPlayer}'s turn`;
+    cells.forEach(cell => {
+      cell.textContent = '';
+      cell.classList.remove('win-cell');
+    });
+  }
+
+  cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+  restartBtn.addEventListener('click', restartGame);
+
+  message.textContent = `Player ${currentPlayer}'s turn`;
+</script>
+</body>
+</html>
