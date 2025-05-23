@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Play with Mayank</title>
+<title>Play with Bhavesh</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -90,10 +90,10 @@
 </style>
 </head>
 <body>
-  <h1>Play with Mayank</h1>
+  <h1>Play with Bhavesh</h1>
 
   <div id="scoreboard">
-    Player X Wins: <span id="x-wins">0</span> | Mayank (O) Wins: <span id="o-wins">0</span>
+    Player X Wins: <span id="x-wins">0</span> | Bhavesh (O) Wins: <span id="o-wins">0</span>
   </div>
 
   <div id="game">
@@ -139,7 +139,7 @@
     updateCell(event.target, index);
     if (!checkResult()) {
       currentPlayer = 'O';
-      message.textContent = `Mayank is thinking...`;
+      message.textContent = `Bhavesh is thinking...`;
       setTimeout(aiMove, 500);
     }
   }
@@ -165,7 +165,7 @@
 
     if (roundWon) {
       if(currentPlayer === 'O'){
-        message.textContent = `Mayank wins! 🎉`;
+        message.textContent = `Bhavesh wins! 🎉`;
       } else {
         message.textContent = `Player ${currentPlayer} wins! 🎉`;
       }
